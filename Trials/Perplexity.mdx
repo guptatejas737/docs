@@ -5,6 +5,8 @@ description: "Generate natural-sounding speech from text in under 60 seconds"
 
 ## Requirements
 
+Before proceeding, ensure you have the following:
+
 - Python (3.9 or higher) installed on your machine.
 - An API key from the Smallest AI platform
 
@@ -32,9 +34,7 @@ export SMALLEST_API_KEY=YOUR_API_KEY
 
 ## Your First Request
 
-### Asynchronous
-
-Reference the following code into your project to start right away.
+The following code synchronously synthesizes the input text into an audio file. Reference or attach it into your project to start right away.
 
 <CodeGroup>
 
@@ -103,11 +103,15 @@ if __name__ == "__main__":
 POST https://waves-api.smallest.ai/api/v1/{model}/tts
 ```
 
+<Note>
+  Check out the source code for the Python SDK on our [**GitHub repository**](https://github.com/smallest-inc/smallest-python-sdk).
+</Note>
+
 ## Parameters
 
 ### Client Configuration
 
-Parameters often set when initializing the `Smallest` or `AsyncSmallest` instance.
+Parameters set when initializing the `Smallest` or `AsyncSmallest` instance.
 
 | Parameter  | Type   | Required | Default       | Description                                                                     |
 | :--------- | :----- | :------- | :------------ | :------------------------------------------------------------------------------ |
@@ -187,7 +191,7 @@ Common error codes and solutions:
   **Production Tip**: Optimize with environment variables for keys, batch requests for speed, select the right sample rate, control speech pace (0.8-1.3), and monitor usage.
 </Tip>
 
-## Latency Benchmarks
+## Model Latency
 
 | Model             | Typical Latency | Best For                               |
 | ----------------- | --------------- | -------------------------------------- |
@@ -195,5 +199,5 @@ Common error codes and solutions:
 | `lightning-large` | 200-300ms       | High-quality narration, expressiveness |
 
 <Note>
-  **Any questions or suggestions?** Raise an issue on [Github](https://github.com/smallest-inc/smallest-python-sdk), Join our [Discord](https://discord.com/invite/5evETqguJs), or email [support@smallest.ai](mailto:support@smallest.ai)
+  **Questions or suggestions?** Raise an issue on [Github](https://github.com/smallest-inc/smallest-python-sdk), Join our [Discord](https://discord.com/invite/5evETqguJs), or mail us at [support@smallest.ai](mailto:support@smallest.ai)
 </Note>
