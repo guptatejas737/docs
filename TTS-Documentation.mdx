@@ -1,8 +1,275 @@
+***
+
+```markdown
 ---
-title: "Trial"
-description: "Lets see if this works"
+title: 'Text-to-Speech Quickstart'
+description: 'Generate natural-sounding speech from text in under 60 seconds'
 ---
 
+## Overview
+
+Convert text to realistic speech using Waves TTS. Get audio in your preferred format with sub-200ms latency using the `lightning` model.
+
+<Note>
+**New to Waves?** Get your free API key at [waves.smallest.ai](https://waves.smallest.ai)
+</Note>
+
+## Your First Request
+
+<CodeGroup>
+
 ```
-ehhe
+from smallestai.waves import WavesClient
+
+# Initialize client
+client = WavesClient(api_key="YOUR_API_KEY")
+
+# Generate speech
+audio_bytes = client.synthesize(
+    "Hello! Welcome to Waves text to speech.",
+    save_as="output.wav"
+)
+```
+
+```
+import { WavesClient, Configuration } from 'smallestai';
+
+// Initialize client
+const config = new Configuration({
+    accessToken: 'YOUR_API_KEY'
+});
+const client = new WavesClient(config);
+
+// Generate speech
+client.synthesize("lightning", {
+    text: "Hello! Welcome to Waves text to speech.",
+    voice_id: "emily",
+    add_wav_header: true,
+    sample_rate: 24000
+});
+```
+
+```
+curl -X POST 'https://waves-api.smallest.ai/api/v1/lightning/tts' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Hello! Welcome to Waves text to speech.",
+    "voice_id": "emily",
+    "sample_rate": 24000,
+    "speed": 1.0
+  }' \
+  --output output.wav
+```
+
+</CodeGroup>
+
+## API Reference
+
+### Endpoint
+
+```
+POST https://waves-api.smallest.ai/api/v1/{model}/tts
+```
+
+### Authentication
+
+All requests require a Bearer token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+### Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `model` | string | Yes | TTS model to use. Options: `lightning` (fast), `lightning-large` (expressive) |
+
+### Request Body
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `text` | string | Yes | - | Text to convert to speech (max 5000 characters) |
+| `voice_id` | string | No | `"emily"` | Voice identifier. Use `get_voices` endpoint to list available voices |
+| `sample_rate` | integer | No | `24000` | Audio sample rate in Hz. Options: `8000`, `16000`, `24000`, `48000` |
+| `speed` | float | No | `1.0` | Speech speed multiplier. Range: `0.5` to `2.0` |
+| `consistency` | float | No | `1.0` | Controls repetition/skipping. Lower = fewer skips, Higher = less repetition |
+
+### Response
+
+Returns raw audio data in WAV format (with header) or PCM audio bytes.
+
+**Content-Type**: `audio/wav` or `application/octet-stream`
+
+<Accordion title="Example Response Headers">
+```
+HTTP/1.1 200 OK
+Content-Type: audio/wav
+Content-Length: 192044
+X-Request-ID: req_abc123xyz
+X-Generation-Time-Ms: 147
+```
+</Accordion>
+
+## Advanced Usage
+
+### Async Operations
+
+For handling multiple TTS requests concurrently:
+
+<CodeGroup>
+
+```
+import asyncio
+import aiofiles
+from smallestai.waves import AsyncWavesClient
+
+async def generate_multiple():
+    client = AsyncWavesClient(api_key="YOUR_API_KEY")
+    
+    async with client as tts:
+        audio = await tts.synthesize(
+            "Processing multiple requests efficiently.",
+            speed=1.2,
+            sample_rate=16000
+        )
+        
+        async with aiofiles.open("output.wav", "wb") as f:
+            await f.write(audio)
+
+asyncio.run(generate_multiple())
+```
+
+</CodeGroup>
+
+### Custom Voice Selection
+
+Retrieve available voices for your model:
+
+```
+# List all voices
+voices = client.get_voices(model='lightning')
+print(f"Available voices: {voices}")
+
+# Use specific voice
+audio = client.synthesize(
+    "This uses a custom voice.",
+    voice_id="alex"  # Replace with your preferred voice
+)
+```
+
+### Per-Request Parameter Override
+
+Override default settings for specific requests:
+
+```
+# Set defaults
+client = WavesClient(
+    api_key="YOUR_API_KEY",
+    model="lightning",
+    sample_rate=24000
+)
+
+# Override for one request
+urgent_audio = client.synthesize(
+    "Fast delivery notification!",
+    speed=1.5,           # Override speed
+    sample_rate=16000    # Override sample rate
+)
+```
+
+## Common Use Cases
+
+<CardGroup cols={2}>
+
+<Card title="Voice Assistants" icon="microphone">
+Use `lightning` model with `speed=1.0` for natural conversation flow in real-time applications.
+</Card>
+
+<Card title="IVR Systems" icon="phone">
+Set `sample_rate=8000` for telephony compatibility and reduce bandwidth usage.
+</Card>
+
+<Card title="Audiobook Narration" icon="book">
+Use `lightning-large` with `consistency=1.2` for expressive, natural-sounding long-form content.
+</Card>
+
+<Card title="Accessibility Features" icon="universal-access">
+Adjust `speed=0.8` for clearer pronunciation in screen readers and navigation systems.
+</Card>
+
+</CardGroup>
+
+## Error Handling
+
+Common error codes and solutions:
+
+| Status Code | Error | Solution |
+|-------------|-------|----------|
+| `401` | Invalid API Key | Verify your API key at [waves.smallest.ai](https://waves.smallest.ai) |
+| `400` | Invalid parameter | Check text length (<5000 chars) and parameter ranges |
+| `429` | Rate limit exceeded | Implement exponential backoff or upgrade your plan |
+| `500` | Server error | Retry with exponential backoff (3 attempts recommended) |
+
+<Tip>
+**Production Tip**: Implement retry logic with exponential backoff for transient network errors. The SDK automatically handles retries (max 3 attempts).
+</Tip>
+
+## Performance Optimization
+
+### Latency Benchmarks
+
+| Model | Typical Latency | Best For |
+|-------|----------------|----------|
+| `lightning` | 120-180ms | Real-time applications, chatbots |
+| `lightning-large` | 200-300ms | High-quality narration, expressiveness |
+
+### Best Practices
+
+1. **Cache API Keys**: Store in environment variables using `SMALLEST_API_KEY`
+2. **Batch Processing**: Use async client for multiple concurrent requests
+3. **Sample Rate Selection**: Match your output format (8kHz for telephony, 24kHz for general use, 48kHz for high fidelity)
+4. **Speed Control**: Keep between `0.8-1.3` for natural-sounding speech
+5. **Monitor Usage**: Track generation time via `X-Generation-Time-Ms` response header
+
+## Installation
+
+<CodeGroup>
+
+```
+pip install smallestai
+```
+
+```
+npm install smallestai
+```
+
+</CodeGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+
+<Card title="Streaming TTS" icon="wave-pulse" href="#">
+Generate audio in real-time chunks for immediate playback
+</Card>
+
+<Card title="Voice Cloning" icon="clone" href="#">
+Create custom voices from audio samples
+</Card>
+
+<Card title="API Reference" icon="code" href="#">
+Explore complete endpoint documentation
+</Card>
+
+<Card title="SDK Documentation" icon="book-open" href="#">
+Browse Python and Node.js SDK guides
+</Card>
+
+</CardGroup>
+
+<Note>
+**Need Help?** Join our [Discord community](https://discord.gg/smallest-ai) or email support@smallest.ai
+</Note>
 ```
