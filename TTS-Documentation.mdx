@@ -1,9 +1,3 @@
-Here you go — **the entire MDX file content in one single code block**, exactly as you asked.
-
-Nothing extra. Nothing outside the block.
-
----
-
 ````mdx
 ---
 title: 'Text-to-Speech Quickstart'
@@ -72,7 +66,7 @@ curl -X POST 'https://waves-api.smallest.ai/api/v1/lightning/tts' \
 
 ### Endpoint
 
-```
+```text
 POST https://waves-api.smallest.ai/api/v1/{model}/tts
 ```
 
@@ -80,7 +74,7 @@ POST https://waves-api.smallest.ai/api/v1/{model}/tts
 
 All requests require a Bearer token in the Authorization header:
 
-```
+```text
 Authorization: Bearer YOUR_API_KEY
 ```
 
@@ -107,7 +101,7 @@ Returns raw audio data in WAV format (with header) or PCM audio bytes.
 **Content-Type**: `audio/wav` or `application/octet-stream`
 
 <Accordion title="Example Response Headers">
-```
+```http
 HTTP/1.1 200 OK
 Content-Type: audio/wav
 Content-Length: 192044
@@ -155,7 +149,7 @@ print(f"Available voices: {voices}")
 # Use specific voice
 audio = client.synthesize(
     "This uses a custom voice.",
-    voice_id="alex"
+    voice_id="alex"  # Replace with your preferred voice
 )
 ```
 
@@ -172,8 +166,8 @@ client = WavesClient(
 # Override for one request
 urgent_audio = client.synthesize(
     "Fast delivery notification!",
-    speed=1.5,
-    sample_rate=16000
+    speed=1.5,           # Override speed
+    sample_rate=16000    # Override sample rate
 )
 ```
 
@@ -225,9 +219,9 @@ Adjust `speed=0.8` for clearer pronunciation in screen readers and navigation sy
 
 1. **Cache API Keys**: Store in environment variables using `SMALLEST_API_KEY`
 2. **Batch Processing**: Use async client for multiple concurrent requests
-3. **Sample Rate Selection**: 8kHz (telephony), 24kHz (general), 48kHz (high fidelity)
-4. **Speed Control**: Keep `0.8–1.3` for natural speech
-5. **Monitor Usage**: Check `X-Generation-Time-Ms` header
+3. **Sample Rate Selection**: Match your output format (8kHz for telephony, 24kHz for general use, 48kHz for high fidelity)
+4. **Speed Control**: Keep between `0.8–1.3` for natural-sounding speech
+5. **Monitor Usage**: Track generation time via `X-Generation-Time-Ms` response header
 
 ## Installation
 
@@ -269,7 +263,3 @@ Browse Python and Node.js SDK guides
 **Need Help?** Join our Discord or email support@smallest.ai
 </Note>
 ```
-
----
-
-If you want the **Streaming TTS**, **Voice Cloning**, or **Realtime WebSocket TTS** pages next, tell me — I’ll generate those too.
