@@ -1,0 +1,73 @@
+---
+title: "Text-to-Speech (TTS) QuickStart"
+---
+
+# Text-to-Speech Quickstart
+
+Convert text into natural, high-quality speech using the Waves TTS API. This guide shows you how to make your first synthesis request.
+
+## Endpoint
+
+`POST` `https://api.waves.smallest.ai/v1/synthesize`
+
+## Headers
+
+- `Authorization: Bearer YOUR_API_KEY`
+- `Content-Type: application/json`
+
+## Request
+
+Send a JSON payload with your text and desired voice parameters.
+
+**`Example using curl:`**
+
+```bash
+curl -X POST "https://api.waves.smallest.ai/v1/synthesize" \
+  -H "Authorization: Bearer $SMALLEST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, world! This is my first TTS request with Waves.",
+    "voice_id": "emily",
+    "model": "lightning",
+    "output_format": "wav"
+  }'
+```
+
+**Example using Python:**
+
+```python
+import requests
+import os
+
+url = "https://api.waves.smallest.ai/v1/synthesize"
+headers = {
+    "Authorization": f"Bearer {os.environ['SMALLEST_API_KEY']}",
+    "Content-Type": "application/json"
+}
+data = {
+    "text": "Hello, world! This is my first TTS request with Waves.",
+    "voice_id": "emily",
+    "model": "lightning",
+    "output_format": "wav"
+}
+
+response = requests.post(url, json=data, headers=headers)
+
+# Save the audio response to a file
+if response.status_code == 200:
+    with open("output.wav", "wb") as f:
+        f.write(response.content)
+    print("Audio saved as output.wav")
+else:
+    print(f"Error: {response.status_code}", response.text)
+```
+
+## Response
+
+A successful request will return an HTTP `200 OK` status with the generated audio data in the specified format (e.g., WAV). The Python example above saves this binary data directly to a file.
+
+You will hear the phrase: _"Hello, world! This is my first TTS request with Waves."_ in a female voice (Emily).
+
+## Pro Tip
+
+> For the lowest latency, use the default `"lightning"` model. Switch to `"lightning-large"` when you need higher audio quality, more expressive voices, or are using a custom voice clone, and enable the `enhancement` parameter for the best possible output.

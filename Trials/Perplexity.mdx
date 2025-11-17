@@ -1,0 +1,199 @@
+---
+title: "Text-to-Speech Quickstart"
+description: "Generate natural-sounding speech from text in under 60 seconds"
+---
+
+## Requirements
+
+- Python (3.9 or higher) installed on your machine.
+- An API key from the Smallest AI platform
+
+<Note>
+  **New to Waves?** Get your free API key at [waves.smallest.ai](https://waves.smallest.ai)
+</Note>
+
+## Installation
+
+Install our SDK
+
+<CodeGroup>
+
+```bash Python
+pip install smallestai
+```
+
+</CodeGroup>
+
+### Set your API key as an environment variable
+
+```bash
+export SMALLEST_API_KEY=YOUR_API_KEY
+```
+
+## Your First Request
+
+### Asynchronous
+
+Reference the following code into your project to start right away.
+
+<CodeGroup>
+
+```python Python
+from smallestai.waves import WavesClient
+
+def main():
+    client = WavesClient(api_key="SMALLEST_API_KEY")
+    audio = client.synthesize(
+        "Hello, this is a test for sync synthesis function.",
+    )
+    with open("sync_synthesize.wav", "wb") as f:
+        f.write(audio)
+
+if __name__ == "__main__":
+    main()
+```
+
+
+```bash cURL
+curl -X POST 'https://waves-api.smallest.ai/api/v1/lightning/tts' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "text": "Hello! Welcome to Waves text to speech.",
+    "voice_id": "emily",
+    "sample_rate": 24000,
+    "speed": 1.0
+  }' \
+  --output output.wav
+```
+
+</CodeGroup>
+
+### Asynchronous Text to Speech
+
+<Note>
+  **Synchronous TTS** provides **immediate, real-time audio** for interactive use cases like voice assistants, while **Asynchronous TTS** is for **batch processing and scalable, non-blocking creation of audio files** like audiobooks.
+</Note>
+
+<CodeGroup>
+
+```python Python
+import asyncio
+import aiofiles
+from smallestai.waves import AsyncWavesClient
+
+async def main():
+    client = AsyncWavesClient(api_key="SMALLEST_API_KEY")
+    async with client as tts:
+        audio_bytes = await tts.synthesize("Hello, this is a test of the async synthesis function.") 
+        async with aiofiles.open("async_synthesize.wav", "wb") as f:
+            await f.write(audio_bytes) 
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+</CodeGroup>
+
+## API Reference
+
+### Endpoint
+
+```
+POST https://waves-api.smallest.ai/api/v1/{model}/tts
+```
+
+## Parameters
+
+### Client Configuration
+
+Parameters often set when initializing the `Smallest` or `AsyncSmallest` instance.
+
+| Parameter  | Type   | Required | Default       | Description                                                                     |
+| :--------- | :----- | :------- | :------------ | :------------------------------------------------------------------------------ |
+| `api_key`  | string | No       | -             | Your API key. Required for auth, but can be set via `SMALLEST_API_KEY` env var. |
+| `model`    | string | No       | `"lightning"` | Default TTS model to use. Options: `lightning`, `lightning-large`.              |
+| `voice_id` | string | No       | `"emily"`     | Default Voice ID to use for speech synthesis.                                   |
+
+### Audio Format & Language
+
+Parameters that define the output format and language of the synthesized audio.
+
+| Parameter       | Type    | Required | Default | Description                                                 |
+| :-------------- | :------ | :------- | :------ | :---------------------------------------------------------- |
+| `sample_rate`   | integer | No       | `24000` | Audio sample rate in Hz.                                    |
+| `output_format` | string  | No       | `"wav"` | Output audio format. Options: `pcm`, `mp3`, `wav`, `mulaw`. |
+| `language`      | string  | No       | `"en"`  | Language code for the text.                                 |
+
+### Speech Style & Quality
+
+Parameters that control the characteristics and quality of the voice.
+
+| Parameter     | Type    | Required | Default | Description                                                                      |
+| :------------ | :------ | :------- | :------ | :------------------------------------------------------------------------------- |
+| `speed`       | float   | No       | `1.0`   | Speech speed multiplier.                                                         |
+| `consistency` | float   | No       | `0.5`   | Controls repetition (higher) vs. skipping (lower). (For `lightning-large` only). |
+| `similarity`  | float   | No       | `0`     | Controls similarity to the reference audio. (For `lightning-large` only).        |
+| `enhancement` | boolean | No       | `False` | Enhances speech quality at the cost of latency. (For `lightning-large` only).    |
+
+<Tip>
+  Remember, you can set these parameters when you first create your `Smallest` or `AsyncSmallest` client instance to establish your defaults. You can then override any of them on a per-call basis by passing them as keyword arguments (`kwargs`) directly to the `.synthesize()` method.
+</Tip>
+
+### Response
+
+Returns raw audio data in WAV format (with header) or PCM audio bytes.
+
+**Content-Type**: `audio/wav` or `application/octet-stream`
+
+<Accordion title="Example Response Headers">
+  ```
+  HTTP/1.1 200 OK
+  Content-Type: audio/wav
+  Content-Length: 192044
+  X-Request-ID: req_abc123xyz
+  X-Generation-Time-Ms: 147
+  ```
+</Accordion>
+
+### Custom Voice Selection
+
+Retrieve available voices for your model:
+
+```python
+# List all voices
+voices = client.get_voices(model='lightning')
+print(f"Available voices: {voices}")
+
+# Use specific voice
+audio = client.synthesize(
+    "This uses a custom voice.",
+    voice_id="alex"  # Replace with your preferred voice
+)
+```
+
+## Error Handling
+
+Common error codes and solutions:
+
+| Status Code | Error               | Solution                                                              |
+| ----------- | ------------------- | --------------------------------------------------------------------- |
+| `401`       | Invalid API Key     | Verify your API key at [waves.smallest.ai](https://waves.smallest.ai) |
+| `400`       | Invalid parameter   | Check text length (\<5000 chars) and parameter ranges                 |
+| `429`       | Rate limit exceeded | Implement exponential backoff or upgrade your plan                    |
+| `500`       | Server error        | Retry with exponential backoff (3 attempts recommended)               |
+
+<Tip>
+  **Production Tip**: Optimize with environment variables for keys, batch requests for speed, select the right sample rate, control speech pace (0.8-1.3), and monitor usage.
+</Tip>
+
+## Latency Benchmarks
+
+| Model             | Typical Latency | Best For                               |
+| ----------------- | --------------- | -------------------------------------- |
+| `lightning`       | 120-180ms       | Real-time applications, chatbots       |
+| `lightning-large` | 200-300ms       | High-quality narration, expressiveness |
+
+<Note>
+  **Any questions or suggestions?** Raise an issue on [Github](https://github.com/smallest-inc/smallest-python-sdk), Join our [Discord](https://discord.com/invite/5evETqguJs), or email [support@smallest.ai](mailto:support@smallest.ai)
+</Note>
